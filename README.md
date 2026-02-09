@@ -135,7 +135,7 @@ CarDiagnostic/
 
 - Passwords are hashed with bcrypt (10 rounds)
 - Email validation on registration
-- Password strength requirements (min 8 characters)
+- Password validation (required, max 128 characters)
 - Duplicate email prevention
 - HTTP-only cookies for session management
 - SQL injection protection via Prisma
