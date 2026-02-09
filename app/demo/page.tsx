@@ -8,7 +8,7 @@ import Footer from '@/components/Footer'
 export default function DemoPage() {
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-blue-50 via-white to-purple-50">
-      <Header isLoggedIn={true} onLogout={() => {}} />
+      <Header isLoggedIn={true} userEmail="demo@example.com" onLogout={() => {}} />
 
       <main className="flex-grow">
         {/* Logged-in view with payment and chat */}
