@@ -135,10 +135,12 @@ CarDiagnostic/
 
 - Passwords are hashed with bcrypt (10 rounds)
 - Email validation on registration
-- Password strength requirements (min 8 characters)
+- Password validation (min 1 character, max 128 characters, trimmed)
 - Duplicate email prevention
 - HTTP-only cookies for session management
 - SQL injection protection via Prisma
+
+**Note:** The application currently allows passwords of any length ≥1 character. For production use, consider implementing additional security controls such as rate limiting, CAPTCHA, or multi-factor authentication.
 
 ## Future Enhancements
 

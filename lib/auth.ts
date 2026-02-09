@@ -14,8 +14,15 @@ export function validateEmail(email: string): boolean {
 }
 
 export function validatePassword(password: string): { valid: boolean; message?: string } {
-  if (password.length < 8) {
-    return { valid: false, message: 'Password must be at least 8 characters long' }
+  const trimmedPassword = password.trim()
+  
+  if (trimmedPassword.length < 1) {
+    return { valid: false, message: 'Password is required' }
   }
+  
+  if (trimmedPassword.length > 128) {
+    return { valid: false, message: 'Password must not exceed 128 characters' }
+  }
+  
   return { valid: true }
 }
