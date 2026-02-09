@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
+import { prisma } from '@/lib/prisma'
 
 export async function GET() {
   try {
@@ -7,7 +8,15 @@ export async function GET() {
     const userId = cookieStore.get('userId')
 
     if (userId) {
-      return NextResponse.json({ authenticated: true })
+      // Fetch user email from database
+      const user = await prisma.user.findUnique({
+        where: { id: userId.value },
+        select: { email: true }
+      })
+
+      if (user) {
+        return NextResponse.json({ authenticated: true, email: user.email })
+      }
     }
 
     return NextResponse.json({ authenticated: false }, { status: 401 })
