@@ -1,6 +1,6 @@
 import { prisma } from '@/lib/prisma';
 
-describe('POST /api/auth/register', () => {
+describe('Database Schema for User Registration', () => {
   const testEmail = `test-${Date.now()}@example.com`;
   const testPassword = 'testpassword123';
 
@@ -19,11 +19,13 @@ describe('POST /api/auth/register', () => {
     await prisma.$disconnect();
   });
 
-  it('should register a user and persist to database', async () => {
+  it('should allow user creation and persistence to database', async () => {
     // This test verifies that:
     // 1. The database schema is applied (User table exists)
-    // 2. User registration works end-to-end
-    // 3. Data is actually persisted to the database
+    // 2. Users can be created and persisted
+    // 3. Data is actually saved to the database
+    // Note: This test uses plain text passwords to test schema only.
+    // The actual registration endpoint hashes passwords before storage.
     
     // Attempt to create a user directly via Prisma to verify DB schema is applied
     const user = await prisma.user.create({
