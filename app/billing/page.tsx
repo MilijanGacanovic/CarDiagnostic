@@ -185,9 +185,6 @@ export default function BillingPage() {
             >
               Continue with Free Trial
             </button>
-            <p className="mt-4 text-gray-600 text-sm">
-              All plans include a 14-day free trial. No credit card required to start.
-            </p>
           </div>
         </div>
       </main>
