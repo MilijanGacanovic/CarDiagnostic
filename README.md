@@ -55,8 +55,10 @@ Edit `.env` and update the following variables:
 4. Generate Prisma client and run migrations:
 ```bash
 npx prisma generate
-npx prisma db push
+npx prisma migrate deploy
 ```
+
+Note: For development, you can also use `npx prisma migrate dev` to create and apply migrations.
 
 5. Run the development server:
 ```bash
@@ -94,10 +96,12 @@ model User {
 
 1. Push your code to GitHub
 2. Import the project in Vercel
-3. Add environment variables in Vercel dashboard
+3. Add environment variables in Vercel dashboard (especially `DATABASE_URL`)
 4. Deploy!
 
 Vercel will automatically detect Next.js and configure the build settings.
+
+**Important:** The build script includes `prisma migrate deploy` which automatically applies database migrations during deployment. This ensures your production database schema is always up to date.
 
 ### Database Options for Vercel
 
