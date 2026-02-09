@@ -86,9 +86,9 @@ export default function HomePage() {
             <div className="w-full max-w-6xl mx-auto">
               {/* Hero Section */}
               <div className="text-center mb-12">
-                <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-white mb-6 leading-tight">
+                <h2 className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-white mb-6 leading-tight">
                   Professional Car Diagnostics
-                </h1>
+                </h2>
                 <p className="text-lg md:text-xl text-white/90 max-w-2xl mx-auto leading-relaxed">
                   Advanced AI-powered diagnostics to help you understand and fix your vehicle issues quickly and efficiently
                 </p>
