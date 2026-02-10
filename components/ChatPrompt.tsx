@@ -29,7 +29,9 @@ export default function ChatPrompt() {
       // If we found a user message and we're not in thinking state,
       // scroll to position it at the top
       if (lastUserMessageIndex >= 0 && !isThinking) {
-        // Use requestAnimationFrame to ensure DOM is fully rendered
+        // Use double requestAnimationFrame to ensure DOM is fully rendered and layout is complete
+        // First frame: DOM updates are committed
+        // Second frame: Layout calculations are complete and we can safely read offsetTop
         requestAnimationFrame(() => {
           requestAnimationFrame(() => {
             if (chatContainerRef.current) {
