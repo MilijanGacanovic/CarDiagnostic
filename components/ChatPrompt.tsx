@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { INITIAL_GREETING } from '@/lib/constants'
 
 export default function ChatPrompt() {
@@ -11,6 +11,15 @@ export default function ChatPrompt() {
       content: INITIAL_GREETING
     }
   ])
+  const [isThinking, setIsThinking] = useState(false)
+  const chatContainerRef = useRef<HTMLDivElement>(null)
+
+  // Auto-scroll to bottom when chat history changes
+  useEffect(() => {
+    if (chatContainerRef.current) {
+      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight
+    }
+  }, [chatHistory, isThinking])
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -22,6 +31,7 @@ export default function ChatPrompt() {
     // Add user message and clear input immediately
     setChatHistory(newChatHistory)
     setMessage('')
+    setIsThinking(true)
 
     try {
       // Call the API endpoint
@@ -38,6 +48,8 @@ export default function ChatPrompt() {
 
       const data = await response.json()
       
+      setIsThinking(false)
+      
       // Add assistant response
       if (data.response) {
         setChatHistory(prev => [...prev, {
@@ -53,6 +65,7 @@ export default function ChatPrompt() {
       }
     } catch (error) {
       console.error('Failed to send message:', error)
+      setIsThinking(false)
       // Add error message
       setChatHistory(prev => [...prev, {
         role: 'assistant',
@@ -78,7 +91,7 @@ export default function ChatPrompt() {
           </div>
         </div>
 
-        <div className="h-96 overflow-y-auto p-6 bg-gray-50">
+        <div ref={chatContainerRef} className="h-96 overflow-y-auto p-6 bg-gray-50">
           <div className="space-y-4">
             {chatHistory.map((msg, idx) => (
               <div
@@ -92,10 +105,24 @@ export default function ChatPrompt() {
                       : 'bg-white text-gray-800 border border-gray-200'
                   }`}
                 >
-                  <p className="text-sm">{msg.content}</p>
+                  <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
                 </div>
               </div>
             ))}
+            {isThinking && (
+              <div className="flex justify-start">
+                <div className="max-w-xs lg:max-w-md px-4 py-3 rounded-2xl bg-white text-gray-800 border border-gray-200">
+                  <div className="flex items-center space-x-2">
+                    <div className="flex space-x-1">
+                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                    </div>
+                    <span className="text-sm text-gray-500">Thinking...</span>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
