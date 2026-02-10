@@ -37,22 +37,17 @@ export async function POST(request: NextRequest) {
     try {
       // Initialize Gemini AI
       const genAI = new GoogleGenerativeAI(apiKey)
-      const model = genAI.getGenerativeModel({ model: 'gemini-pro' })
-
-      // Build conversation history for context
-      const chat = model.startChat({
-        history: chatHistory?.slice(0, -1).map((msg: { role: string; content: string }) => ({
-          role: msg.role === 'user' ? 'user' : 'model',
-          parts: [{ text: msg.content }]
-        })) || [],
+      const model = genAI.getGenerativeModel({ 
+        model: 'gemini-3-flash-preview',
         generationConfig: {
           maxOutputTokens: 500,
           temperature: 0.7,
         },
       })
 
-      // Send message and get response
-      const result = await chat.sendMessage(message)
+      // Use the simplest API call - just pass the message string directly
+      // This aligns with official docs: generateContent(contents="string")
+      const result = await model.generateContent(message)
       const response = await result.response
       const text = response.text()
 
