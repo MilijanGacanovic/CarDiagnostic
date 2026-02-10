@@ -135,30 +135,30 @@ Style rules:
         responseBody = geminiError.error
       }
       
-      // Sanitize response body - remove API keys and potentially sensitive data
+      // Sanitize response body - redact API keys and potentially sensitive data
       let sanitizedBody = responseBody
       if (responseBody && typeof responseBody === 'object') {
-        sanitizedBody = JSON.parse(JSON.stringify(responseBody))
-        // Remove common sensitive fields
-        const sensitiveFields = ['apiKey', 'api_key', 'key', 'token', 'authorization', 'auth', 'password', 'secret', 'privateKey', 'private_key']
-        const removeSensitiveData = (obj: any): any => {
+        sanitizedBody = structuredClone(responseBody)
+        // Pre-compute lowercased sensitive field names for efficient lookups
+        const sensitiveFieldsLower = new Set(['apikey', 'api_key', 'key', 'token', 'authorization', 'auth', 'password', 'secret', 'privatekey', 'private_key'])
+        const redactSensitiveData = (obj: any): any => {
           if (typeof obj !== 'object' || obj === null) return obj
           
           if (Array.isArray(obj)) {
-            return obj.map(item => removeSensitiveData(item))
+            return obj.map(item => redactSensitiveData(item))
           }
           
           for (const key in obj) {
             // Use exact case-insensitive match to avoid false positives
-            if (sensitiveFields.some(field => key.toLowerCase() === field.toLowerCase())) {
+            if (sensitiveFieldsLower.has(key.toLowerCase())) {
               obj[key] = '[REDACTED]'
             } else if (typeof obj[key] === 'object') {
-              removeSensitiveData(obj[key])
+              redactSensitiveData(obj[key])
             }
           }
           return obj
         }
-        sanitizedBody = removeSensitiveData(sanitizedBody)
+        sanitizedBody = redactSensitiveData(sanitizedBody)
       }
       
       // Log detailed error information for debugging
