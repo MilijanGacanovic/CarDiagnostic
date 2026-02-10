@@ -39,15 +39,39 @@ export async function POST(request: NextRequest) {
       const genAI = new GoogleGenerativeAI(apiKey)
       const model = genAI.getGenerativeModel({ 
         model: 'gemini-3-flash-preview',
+        systemInstruction: "You are an experienced automotive mechanic and diagnostic specialist. Your name is 'Car Mechanic Assistant'. Always refer to yourself as 'Car Mechanic Assistant'.",
         generationConfig: {
           maxOutputTokens: 500,
           temperature: 0.7,
         },
       })
 
-      // Use the simplest API call - just pass the message string directly
-      // This aligns with official docs: generateContent(contents="string")
-      const result = await model.generateContent(message)
+      // Build history for chat session from chatHistory array
+      // Convert chatHistory format to Gemini's expected format
+      // Filter out the initial greeting message and ensure first message is from user
+      const history = chatHistory && Array.isArray(chatHistory)
+        ? chatHistory
+            .filter((msg: any) => {
+              // Filter out initial greeting messages
+              const isInitialGreeting = msg.role === 'assistant' && (
+                msg.content === 'Hello! I\'m your Car Diagnostic Assistant. Ask me anything about your vehicle issues, error codes, or maintenance questions.' ||
+                msg.content === 'Hello! I\'m Car Mechanic Assistant, your experienced automotive mechanic and diagnostic specialist. Ask me anything about your vehicle issues, error codes, or maintenance questions.'
+              )
+              return !isInitialGreeting
+            })
+            .map((msg: any) => ({
+              role: msg.role === 'assistant' ? 'model' : 'user',
+              parts: [{ text: msg.content }],
+            }))
+        : []
+
+      // Start chat with history
+      const chat = model.startChat({
+        history: history,
+      })
+
+      // Send the new message
+      const result = await chat.sendMessage(message)
       const response = await result.response
       const text = response.text()
 

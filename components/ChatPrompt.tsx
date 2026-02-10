@@ -7,7 +7,7 @@ export default function ChatPrompt() {
   const [chatHistory, setChatHistory] = useState<Array<{ role: 'user' | 'assistant'; content: string }>>([
     {
       role: 'assistant',
-      content: 'Hello! I\'m your Car Diagnostic Assistant. Ask me anything about your vehicle issues, error codes, or maintenance questions.'
+      content: 'Hello! I\'m Car Mechanic Assistant, your experienced automotive mechanic and diagnostic specialist. Ask me anything about your vehicle issues, error codes, or maintenance questions.'
     }
   ])
 
