@@ -2,27 +2,35 @@ import { NextRequest, NextResponse } from 'next/server'
 import { GoogleGenerativeAI } from '@google/generative-ai'
 
 export async function POST(request: NextRequest) {
+  // Check if API key is available at startup
+  const apiKey = process.env.GEMINI_API_KEY
+  if (!apiKey) {
+    console.error('GEMINI_API_KEY_MISSING')
+    return NextResponse.json(
+      { error: 'Missing GEMINI_API_KEY' },
+      { status: 500 }
+    )
+  }
+
   try {
-    const body = await request.json()
+    // Safely parse request body
+    let body
+    try {
+      body = await request.json()
+    } catch (parseError) {
+      console.error('JSON_PARSE_ERROR')
+      return NextResponse.json(
+        { error: 'Invalid JSON in request body' },
+        { status: 400 }
+      )
+    }
+
     const { message, chatHistory } = body
 
     if (!message || typeof message !== 'string') {
       return NextResponse.json(
         { error: 'Message is required' },
         { status: 400 }
-      )
-    }
-
-    // Check if API key is available
-    const apiKey = process.env.GEMINI_API_KEY
-    if (!apiKey) {
-      console.error('GEMINI_API_KEY_MISSING')
-      return NextResponse.json(
-        { 
-          response: 'I apologize, but the AI service is currently unavailable. Please contact support.',
-          error: 'Service unavailable'
-        },
-        { status: 503 }
       )
     }
 
