@@ -1,13 +1,14 @@
 'use client'
 
 import { useState } from 'react'
+import { INITIAL_GREETING } from '@/lib/constants'
 
 export default function ChatPrompt() {
   const [message, setMessage] = useState('')
   const [chatHistory, setChatHistory] = useState<Array<{ role: 'user' | 'assistant'; content: string }>>([
     {
       role: 'assistant',
-      content: 'Hello! I\'m your Car Diagnostic Assistant. Ask me anything about your vehicle issues, error codes, or maintenance questions.'
+      content: INITIAL_GREETING
     }
   ])
 

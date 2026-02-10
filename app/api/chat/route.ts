@@ -34,20 +34,64 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Define message type for better type safety
+    type ChatMessage = {
+      role: 'user' | 'assistant'
+      content: string
+    }
+
     try {
       // Initialize Gemini AI
       const genAI = new GoogleGenerativeAI(apiKey)
       const model = genAI.getGenerativeModel({ 
         model: 'gemini-3-flash-preview',
+        systemInstruction: "You are an experienced automotive mechanic and diagnostic specialist. Your name is 'Car Mechanic Assistant'. Always refer to yourself as 'Car Mechanic Assistant'.",
         generationConfig: {
           maxOutputTokens: 500,
           temperature: 0.7,
         },
       })
 
-      // Use the simplest API call - just pass the message string directly
-      // This aligns with official docs: generateContent(contents="string")
-      const result = await model.generateContent(message)
+      // Build history for chat session from chatHistory array
+      // Convert chatHistory format to Gemini's expected format
+      let processedHistory: ChatMessage[] = []
+      
+      if (chatHistory && Array.isArray(chatHistory)) {
+        // Drop any leading non-user messages
+        let firstUserIndex = chatHistory.findIndex((msg: ChatMessage) => msg.role === 'user')
+        if (firstUserIndex === -1) {
+          // No user messages in history, use empty history
+          processedHistory = []
+        } else {
+          // Take messages from first user message onwards
+          processedHistory = chatHistory.slice(firstUserIndex)
+        }
+        
+        // Truncate to last 10 turns (20 messages: 10 user + 10 assistant)
+        if (processedHistory.length > 20) {
+          processedHistory = processedHistory.slice(-20)
+          
+          // Ensure truncated history still starts with a user message
+          const firstUserAfterTruncate = processedHistory.findIndex((msg: ChatMessage) => msg.role === 'user')
+          if (firstUserAfterTruncate > 0) {
+            processedHistory = processedHistory.slice(firstUserAfterTruncate)
+          }
+        }
+      }
+      
+      // Map to Gemini's expected format
+      const history = processedHistory.map((msg: ChatMessage) => ({
+        role: msg.role === 'assistant' ? 'model' : 'user',
+        parts: [{ text: msg.content }],
+      }))
+
+      // Start chat with history
+      const chat = model.startChat({
+        history: history,
+      })
+
+      // Send the new message
+      const result = await chat.sendMessage(message)
       const response = await result.response
       const text = response.text()
 
