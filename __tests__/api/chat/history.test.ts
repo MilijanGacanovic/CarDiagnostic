@@ -1,5 +1,6 @@
 import { NextRequest } from 'next/server';
 import { POST } from '@/app/api/chat/route';
+import { INITIAL_GREETING } from '@/lib/constants';
 
 describe('Chat History Feature', () => {
   const originalEnv = process.env;
@@ -52,7 +53,7 @@ describe('Chat History Feature', () => {
         chatHistory: [
           { 
             role: 'assistant', 
-            content: 'Hello! I\'m Car Mechanic Assistant, your experienced automotive mechanic and diagnostic specialist. Ask me anything about your vehicle issues, error codes, or maintenance questions.' 
+            content: INITIAL_GREETING
           }
         ]
       }),

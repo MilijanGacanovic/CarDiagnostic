@@ -34,6 +34,12 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Define message type for better type safety
+    type ChatMessage = {
+      role: 'user' | 'assistant'
+      content: string
+    }
+
     try {
       // Initialize Gemini AI
       const genAI = new GoogleGenerativeAI(apiKey)
@@ -51,14 +57,11 @@ export async function POST(request: NextRequest) {
       // Filter out the initial greeting message (first assistant message if it's at the start)
       const history = chatHistory && Array.isArray(chatHistory)
         ? chatHistory
-            .filter((msg: any, index: number) => {
+            .filter((msg: ChatMessage, index: number) => {
               // Skip the first message if it's from the assistant (initial greeting)
-              if (index === 0 && msg.role === 'assistant') {
-                return false
-              }
-              return true
+              return !(index === 0 && msg.role === 'assistant')
             })
-            .map((msg: any) => ({
+            .map((msg: ChatMessage) => ({
               role: msg.role === 'assistant' ? 'model' : 'user',
               parts: [{ text: msg.content }],
             }))
