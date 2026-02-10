@@ -45,7 +45,7 @@ export default function BillingPage() {
   const handleSelectPlan = (planId: string) => {
     setSelectedPlan(planId)
     // Open Stripe demo payment page in a new tab
-    window.open('https://stripe-payments-demo.appspot.com/', '_blank')
+    window.open('https://stripe-payments-demo.appspot.com/', '_blank', 'noopener,noreferrer')
   }
 
   const handleContinueFreeTrial = () => {
