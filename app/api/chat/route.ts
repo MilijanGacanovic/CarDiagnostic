@@ -140,7 +140,7 @@ Style rules:
       if (responseBody && typeof responseBody === 'object') {
         sanitizedBody = JSON.parse(JSON.stringify(responseBody))
         // Remove common sensitive fields
-        const sensitiveFields = ['apiKey', 'api_key', 'key', 'token', 'authorization', 'auth', 'password', 'secret']
+        const sensitiveFields = ['apiKey', 'api_key', 'key', 'token', 'authorization', 'auth', 'password', 'secret', 'privateKey', 'private_key']
         const removeSensitiveData = (obj: any): any => {
           if (typeof obj !== 'object' || obj === null) return obj
           
@@ -149,7 +149,8 @@ Style rules:
           }
           
           for (const key in obj) {
-            if (sensitiveFields.some(field => key.toLowerCase().includes(field))) {
+            // Use exact case-insensitive match to avoid false positives
+            if (sensitiveFields.some(field => key.toLowerCase() === field.toLowerCase())) {
               obj[key] = '[REDACTED]'
             } else if (typeof obj[key] === 'object') {
               removeSensitiveData(obj[key])
