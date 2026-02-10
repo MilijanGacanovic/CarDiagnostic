@@ -182,7 +182,7 @@ Style rules:
       })
       
       // Rate limiting
-      if (httpStatus === 429 || errorMessage.includes('429') || errorMessage.toLowerCase().includes('rate limit')) {
+      if (httpStatus === 429 || errorMessage.toLowerCase().includes('rate limit') || (!httpStatus && errorMessage.includes('429'))) {
         return NextResponse.json(
           { 
             response: 'I\'m receiving too many requests right now. Please try again in a few moments.',
@@ -206,7 +206,7 @@ Style rules:
       }
 
       // Invalid API key
-      if (httpStatus === 401 || httpStatus === 403 || errorMessage.includes('API key') || errorMessage.includes('401') || errorMessage.includes('403')) {
+      if (httpStatus === 401 || httpStatus === 403 || errorMessage.includes('API key') || (!httpStatus && (errorMessage.includes('401') || errorMessage.includes('403')))) {
         return NextResponse.json(
           { 
             response: 'I apologize, but the AI service is currently unavailable. Please contact support.',
