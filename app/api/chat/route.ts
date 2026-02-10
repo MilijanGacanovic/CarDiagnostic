@@ -54,18 +54,30 @@ export async function POST(request: NextRequest) {
 
       // Build history for chat session from chatHistory array
       // Convert chatHistory format to Gemini's expected format
-      // Filter out the initial greeting message (first assistant message if it's at the start)
-      const history = chatHistory && Array.isArray(chatHistory)
-        ? chatHistory
-            .filter((msg: ChatMessage, index: number) => {
-              // Skip the first message if it's from the assistant (initial greeting)
-              return !(index === 0 && msg.role === 'assistant')
-            })
-            .map((msg: ChatMessage) => ({
-              role: msg.role === 'assistant' ? 'model' : 'user',
-              parts: [{ text: msg.content }],
-            }))
-        : []
+      let processedHistory: ChatMessage[] = []
+      
+      if (chatHistory && Array.isArray(chatHistory)) {
+        // Drop any leading non-user messages
+        let firstUserIndex = chatHistory.findIndex((msg: ChatMessage) => msg.role === 'user')
+        if (firstUserIndex === -1) {
+          // No user messages in history, use empty history
+          processedHistory = []
+        } else {
+          // Take messages from first user message onwards
+          processedHistory = chatHistory.slice(firstUserIndex)
+        }
+        
+        // Truncate to last 10 turns (20 messages: 10 user + 10 assistant)
+        if (processedHistory.length > 20) {
+          processedHistory = processedHistory.slice(-20)
+        }
+      }
+      
+      // Map to Gemini's expected format
+      const history = processedHistory.map((msg: ChatMessage) => ({
+        role: msg.role === 'assistant' ? 'model' : 'user',
+        parts: [{ text: msg.content }],
+      }))
 
       // Start chat with history
       const chat = model.startChat({
