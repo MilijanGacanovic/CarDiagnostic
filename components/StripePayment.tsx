@@ -49,8 +49,8 @@ export default function StripePayment() {
 
   const handleSelectPlan = (planId: string) => {
     setSelectedPlan(planId)
-    // Stripe integration will be added here
-    alert(`Plan ${planId} selected. Stripe payment integration will be added.`)
+    // Open Stripe demo payment page in a new tab
+    window.open('https://stripe-payments-demo.appspot.com/', '_blank')
   }
 
   return (
