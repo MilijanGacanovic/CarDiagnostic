@@ -163,11 +163,21 @@ Style rules:
         sanitizedBody = redactSensitiveData(structuredClone(responseBody))
       }
       
+      // Safely stringify response body for logging
+      let responseBodyString: string | undefined
+      if (sanitizedBody) {
+        try {
+          responseBodyString = JSON.stringify(sanitizedBody).substring(0, 500)
+        } catch {
+          responseBodyString = '[Unable to stringify response body]'
+        }
+      }
+      
       // Log detailed error information for debugging
       console.error('GEMINI_API_ERROR:', {
         message: errorMessage.substring(0, 200),
         httpStatus,
-        responseBody: sanitizedBody ? JSON.stringify(sanitizedBody).substring(0, 500) : undefined,
+        responseBody: responseBodyString,
         errorType: geminiError?.constructor?.name,
       })
       
