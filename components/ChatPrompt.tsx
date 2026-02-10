@@ -11,22 +11,53 @@ export default function ChatPrompt() {
     }
   ])
 
-  const handleSendMessage = (e: React.FormEvent) => {
+  const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!message.trim()) return
 
-    // Add user message
-    setChatHistory([...chatHistory, { role: 'user', content: message }])
+    const userMessage = message.trim()
+    const newChatHistory = [...chatHistory, { role: 'user' as const, content: userMessage }]
     
-    // Simulate bot response (actual bot integration will be added later)
-    setTimeout(() => {
+    // Add user message and clear input immediately
+    setChatHistory(newChatHistory)
+    setMessage('')
+
+    try {
+      // Call the API endpoint
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          message: userMessage,
+          chatHistory: newChatHistory
+        }),
+      })
+
+      const data = await response.json()
+      
+      // Add assistant response
+      if (data.response) {
+        setChatHistory(prev => [...prev, {
+          role: 'assistant',
+          content: data.response
+        }])
+      } else {
+        // Handle unexpected API response format
+        setChatHistory(prev => [...prev, {
+          role: 'assistant',
+          content: 'I apologize, but I received an unexpected response. Please try again.'
+        }])
+      }
+    } catch (error) {
+      console.error('Failed to send message:', error)
+      // Add error message
       setChatHistory(prev => [...prev, {
         role: 'assistant',
-        content: 'Thank you for your question. The AI bot integration will be added soon. For now, this is a placeholder response.'
+        content: 'I apologize, but I\'m having trouble connecting right now. Please try again in a moment.'
       }])
-    }, 1000)
-
-    setMessage('')
+    }
   }
 
   return (
