@@ -70,6 +70,12 @@ export async function POST(request: NextRequest) {
         // Truncate to last 10 turns (20 messages: 10 user + 10 assistant)
         if (processedHistory.length > 20) {
           processedHistory = processedHistory.slice(-20)
+          
+          // Ensure truncated history still starts with a user message
+          const firstUserAfterTruncate = processedHistory.findIndex((msg: ChatMessage) => msg.role === 'user')
+          if (firstUserAfterTruncate > 0) {
+            processedHistory = processedHistory.slice(firstUserAfterTruncate)
+          }
         }
       }
       
