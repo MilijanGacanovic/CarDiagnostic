@@ -48,16 +48,15 @@ export async function POST(request: NextRequest) {
 
       // Build history for chat session from chatHistory array
       // Convert chatHistory format to Gemini's expected format
-      // Filter out the initial greeting message and ensure first message is from user
+      // Filter out the initial greeting message (first assistant message if it's at the start)
       const history = chatHistory && Array.isArray(chatHistory)
         ? chatHistory
-            .filter((msg: any) => {
-              // Filter out initial greeting messages
-              const isInitialGreeting = msg.role === 'assistant' && (
-                msg.content === 'Hello! I\'m your Car Diagnostic Assistant. Ask me anything about your vehicle issues, error codes, or maintenance questions.' ||
-                msg.content === 'Hello! I\'m Car Mechanic Assistant, your experienced automotive mechanic and diagnostic specialist. Ask me anything about your vehicle issues, error codes, or maintenance questions.'
-              )
-              return !isInitialGreeting
+            .filter((msg: any, index: number) => {
+              // Skip the first message if it's from the assistant (initial greeting)
+              if (index === 0 && msg.role === 'assistant') {
+                return false
+              }
+              return true
             })
             .map((msg: any) => ({
               role: msg.role === 'assistant' ? 'model' : 'user',
