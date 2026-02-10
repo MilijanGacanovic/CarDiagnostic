@@ -55,7 +55,7 @@ Style rules:
 - Break down complex explanations into digestible points using simple paragraphs`
       
       const model = genAI.getGenerativeModel({ 
-        model: 'gemini-3-flash-preview',
+        model: 'gemini-2.5-flash',
         systemInstruction,
         generationConfig: {
           maxOutputTokens: 1000,
@@ -110,16 +110,67 @@ Style rules:
         response: text
       })
     } catch (geminiError: any) {
-      // Handle specific Gemini API errors
+      // Extract and sanitize error information for logging
       const errorMessage = geminiError?.message || String(geminiError)
       
+      // Extract HTTP status if available
+      let httpStatus: number | undefined
+      let responseBody: any
+      
+      // Try to extract status from different possible error structures
+      if (geminiError?.status) {
+        httpStatus = geminiError.status
+      } else if (geminiError?.response?.status) {
+        httpStatus = geminiError.response.status
+      } else if (geminiError?.statusCode) {
+        httpStatus = geminiError.statusCode
+      }
+      
+      // Try to extract response body
+      if (geminiError?.response?.data) {
+        responseBody = geminiError.response.data
+      } else if (geminiError?.data) {
+        responseBody = geminiError.data
+      } else if (geminiError?.error) {
+        responseBody = geminiError.error
+      }
+      
+      // Sanitize response body - remove API keys and potentially sensitive data
+      let sanitizedBody = responseBody
+      if (responseBody && typeof responseBody === 'object') {
+        sanitizedBody = JSON.parse(JSON.stringify(responseBody))
+        // Remove common sensitive fields
+        const sensitiveFields = ['apiKey', 'api_key', 'key', 'token', 'authorization', 'auth', 'password', 'secret']
+        const removeSensitiveData = (obj: any): any => {
+          if (typeof obj !== 'object' || obj === null) return obj
+          
+          for (const key in obj) {
+            if (sensitiveFields.some(field => key.toLowerCase().includes(field))) {
+              obj[key] = '[REDACTED]'
+            } else if (typeof obj[key] === 'object') {
+              removeSensitiveData(obj[key])
+            }
+          }
+          return obj
+        }
+        sanitizedBody = removeSensitiveData(sanitizedBody)
+      }
+      
+      // Log detailed error information for debugging
+      console.error('GEMINI_API_ERROR:', {
+        message: errorMessage.substring(0, 200),
+        httpStatus,
+        responseBody: sanitizedBody ? JSON.stringify(sanitizedBody).substring(0, 500) : undefined,
+        errorType: geminiError?.constructor?.name,
+      })
+      
       // Rate limiting
-      if (errorMessage.includes('429') || errorMessage.toLowerCase().includes('rate limit')) {
-        console.error('GEMINI_RATE_LIMITED')
+      if (httpStatus === 429 || errorMessage.includes('429') || errorMessage.toLowerCase().includes('rate limit')) {
         return NextResponse.json(
           { 
             response: 'I\'m receiving too many requests right now. Please try again in a few moments.',
-            error: 'Rate limited'
+            error: 'Rate limited',
+            details: httpStatus ? `HTTP ${httpStatus}` : undefined
           },
           { status: 429 }
         )
@@ -127,23 +178,23 @@ Style rules:
 
       // Quota exceeded
       if (errorMessage.includes('quota') || errorMessage.includes('RESOURCE_EXHAUSTED')) {
-        console.error('GEMINI_QUOTA_EXHAUSTED')
         return NextResponse.json(
           { 
             response: 'The AI service has reached its usage limit. Please try again later or contact support.',
-            error: 'Quota exhausted'
+            error: 'Quota exhausted',
+            details: httpStatus ? `HTTP ${httpStatus}` : undefined
           },
           { status: 503 }
         )
       }
 
       // Invalid API key
-      if (errorMessage.includes('API key') || errorMessage.includes('401') || errorMessage.includes('403')) {
-        console.error('GEMINI_AUTH_FAILED')
+      if (httpStatus === 401 || httpStatus === 403 || errorMessage.includes('API key') || errorMessage.includes('401') || errorMessage.includes('403')) {
         return NextResponse.json(
           { 
             response: 'I apologize, but the AI service is currently unavailable. Please contact support.',
-            error: 'Service unavailable'
+            error: 'Service unavailable',
+            details: httpStatus ? `HTTP ${httpStatus}` : undefined
           },
           { status: 503 }
         )
@@ -151,22 +202,22 @@ Style rules:
 
       // Network or timeout errors
       if (errorMessage.toLowerCase().includes('network') || errorMessage.toLowerCase().includes('timeout')) {
-        console.error('GEMINI_NETWORK_ERROR')
         return NextResponse.json(
           { 
             response: 'I\'m having trouble connecting right now. Please check your internet connection and try again.',
-            error: 'Network error'
+            error: 'Network error',
+            details: httpStatus ? `HTTP ${httpStatus}` : undefined
           },
           { status: 503 }
         )
       }
 
-      // Generic Gemini error
-      console.error('GEMINI_ERROR:', errorMessage.substring(0, 100))
+      // Generic Gemini error with more details
       return NextResponse.json(
         { 
           response: 'I apologize, but I encountered an issue processing your request. Please try again or rephrase your question.',
-          error: 'Processing error'
+          error: 'Processing error',
+          details: httpStatus ? `HTTP ${httpStatus}` : errorMessage.substring(0, 100)
         },
         { status: 500 }
       )
