@@ -1,6 +1,28 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { GoogleGenerativeAI } from '@google/generative-ai'
 
+// Pre-compute lowercased sensitive field names for efficient lookups
+const SENSITIVE_FIELDS = new Set(['apikey', 'api_key', 'key', 'token', 'authorization', 'auth', 'password', 'secret', 'privatekey', 'private_key'])
+
+// Helper function to redact sensitive data from error response bodies
+function redactSensitiveData(obj: any): any {
+  if (typeof obj !== 'object' || obj === null) return obj
+  
+  if (Array.isArray(obj)) {
+    return obj.map(item => redactSensitiveData(item))
+  }
+  
+  for (const key in obj) {
+    // Use exact case-insensitive match to avoid false positives
+    if (SENSITIVE_FIELDS.has(key.toLowerCase())) {
+      obj[key] = '[REDACTED]'
+    } else if (typeof obj[key] === 'object') {
+      redactSensitiveData(obj[key])
+    }
+  }
+  return obj
+}
+
 export async function POST(request: NextRequest) {
   // Check if API key is available at startup
   const apiKey = process.env.GEMINI_API_KEY
@@ -138,27 +160,7 @@ Style rules:
       // Sanitize response body - redact API keys and potentially sensitive data
       let sanitizedBody = responseBody
       if (responseBody && typeof responseBody === 'object') {
-        sanitizedBody = structuredClone(responseBody)
-        // Pre-compute lowercased sensitive field names for efficient lookups
-        const sensitiveFieldsLower = new Set(['apikey', 'api_key', 'key', 'token', 'authorization', 'auth', 'password', 'secret', 'privatekey', 'private_key'])
-        const redactSensitiveData = (obj: any): any => {
-          if (typeof obj !== 'object' || obj === null) return obj
-          
-          if (Array.isArray(obj)) {
-            return obj.map(item => redactSensitiveData(item))
-          }
-          
-          for (const key in obj) {
-            // Use exact case-insensitive match to avoid false positives
-            if (sensitiveFieldsLower.has(key.toLowerCase())) {
-              obj[key] = '[REDACTED]'
-            } else if (typeof obj[key] === 'object') {
-              redactSensitiveData(obj[key])
-            }
-          }
-          return obj
-        }
-        sanitizedBody = redactSensitiveData(sanitizedBody)
+        sanitizedBody = redactSensitiveData(structuredClone(responseBody))
       }
       
       // Log detailed error information for debugging
