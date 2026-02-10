@@ -38,10 +38,18 @@ export default function ChatPrompt() {
       const data = await response.json()
       
       // Add assistant response
-      setChatHistory(prev => [...prev, {
-        role: 'assistant',
-        content: data.response || 'I apologize, but I couldn\'t process your request. Please try again.'
-      }])
+      if (data.response) {
+        setChatHistory(prev => [...prev, {
+          role: 'assistant',
+          content: data.response
+        }])
+      } else {
+        // Handle unexpected API response format
+        setChatHistory(prev => [...prev, {
+          role: 'assistant',
+          content: 'I apologize, but I received an unexpected response. Please try again.'
+        }])
+      }
     } catch (error) {
       console.error('Failed to send message:', error)
       // Add error message

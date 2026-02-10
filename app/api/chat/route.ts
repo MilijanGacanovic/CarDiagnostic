@@ -16,7 +16,7 @@ export async function POST(request: NextRequest) {
     // Check if API key is available
     const apiKey = process.env.GEMINI_API_KEY
     if (!apiKey) {
-      console.error('GEMINI_KEY_MISSING')
+      console.error('GEMINI_API_KEY_MISSING')
       return NextResponse.json(
         { 
           response: 'I apologize, but the AI service is currently unavailable. Please contact support.',
