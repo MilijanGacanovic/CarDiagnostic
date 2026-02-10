@@ -43,11 +43,17 @@ export async function POST(request: NextRequest) {
     try {
       // Initialize Gemini AI
       const genAI = new GoogleGenerativeAI(apiKey)
+      
+      const systemInstruction = `You are an experienced automotive mechanic and diagnostic specialist. 
+Your name is 'Car Mechanic Assistant'. Always refer to yourself as 'Car Mechanic Assistant'. 
+Provide clear, concise, and complete responses. Keep responses focused and under 300 words 
+while ensuring all important information is included. Break down complex explanations into digestible points.`
+      
       const model = genAI.getGenerativeModel({ 
         model: 'gemini-3-flash-preview',
-        systemInstruction: "You are an experienced automotive mechanic and diagnostic specialist. Your name is 'Car Mechanic Assistant'. Always refer to yourself as 'Car Mechanic Assistant'.",
+        systemInstruction,
         generationConfig: {
-          maxOutputTokens: 500,
+          maxOutputTokens: 1000,
           temperature: 0.7,
         },
       })
