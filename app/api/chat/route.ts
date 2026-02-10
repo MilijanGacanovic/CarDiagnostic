@@ -144,6 +144,10 @@ Style rules:
         const removeSensitiveData = (obj: any): any => {
           if (typeof obj !== 'object' || obj === null) return obj
           
+          if (Array.isArray(obj)) {
+            return obj.map(item => removeSensitiveData(item))
+          }
+          
           for (const key in obj) {
             if (sensitiveFields.some(field => key.toLowerCase().includes(field))) {
               obj[key] = '[REDACTED]'
