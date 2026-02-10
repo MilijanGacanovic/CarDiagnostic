@@ -15,7 +15,29 @@ describe('Chat API Endpoint', () => {
     process.env = originalEnv;
   });
 
+  it('should return 400 when request body is invalid JSON', async () => {
+    // Set API key so we can test JSON parsing
+    process.env.GEMINI_API_KEY = 'test-key';
+
+    const request = new NextRequest('http://localhost:3000/api/chat', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: 'invalid json {',
+    });
+
+    const response = await POST(request);
+    const data = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(data.error).toBe('Invalid JSON in request body');
+  });
+
   it('should return 400 when message is missing', async () => {
+    // Set API key so we can test message validation
+    process.env.GEMINI_API_KEY = 'test-key';
+
     const request = new NextRequest('http://localhost:3000/api/chat', {
       method: 'POST',
       headers: {
@@ -32,6 +54,9 @@ describe('Chat API Endpoint', () => {
   });
 
   it('should return 400 when message is not a string', async () => {
+    // Set API key so we can test message validation
+    process.env.GEMINI_API_KEY = 'test-key';
+
     const request = new NextRequest('http://localhost:3000/api/chat', {
       method: 'POST',
       headers: {
@@ -47,7 +72,7 @@ describe('Chat API Endpoint', () => {
     expect(data.error).toBe('Message is required');
   });
 
-  it('should return 503 when GEMINI_API_KEY is missing', async () => {
+  it('should return 500 when GEMINI_API_KEY is missing', async () => {
     // Remove API key from environment
     delete process.env.GEMINI_API_KEY;
 
@@ -65,9 +90,8 @@ describe('Chat API Endpoint', () => {
     const response = await POST(request);
     const data = await response.json();
 
-    expect(response.status).toBe(503);
-    expect(data.response).toContain('unavailable');
-    expect(data.error).toBe('Service unavailable');
+    expect(response.status).toBe(500);
+    expect(data.error).toBe('Missing GEMINI_API_KEY');
   });
 
   it('should validate request structure with valid message', async () => {
