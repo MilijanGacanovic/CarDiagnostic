@@ -14,10 +14,43 @@ export default function ChatPrompt() {
   const [isThinking, setIsThinking] = useState(false)
   const chatContainerRef = useRef<HTMLDivElement>(null)
 
-  // Auto-scroll to bottom when chat history changes
+  // Auto-scroll to position latest user question at top when chat history changes
   useEffect(() => {
-    if (chatContainerRef.current) {
-      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight
+    if (chatContainerRef.current && chatHistory.length > 0) {
+      // Find the index of the last user message
+      let lastUserMessageIndex = -1
+      for (let i = chatHistory.length - 1; i >= 0; i--) {
+        if (chatHistory[i].role === 'user') {
+          lastUserMessageIndex = i
+          break
+        }
+      }
+
+      // If we found a user message and we're not in thinking state,
+      // scroll to position it at the top
+      if (lastUserMessageIndex >= 0 && !isThinking) {
+        // Use double requestAnimationFrame to ensure DOM is fully rendered and layout is complete
+        // First frame: DOM updates are committed
+        // Second frame: Layout calculations are complete and we can safely read offsetTop
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            if (chatContainerRef.current) {
+              const messageElements = chatContainerRef.current.querySelectorAll('.space-y-4 > div')
+              const targetElement = messageElements[lastUserMessageIndex] as HTMLElement
+              
+              if (targetElement && messageElements[0]) {
+                // Calculate scroll position relative to first message
+                const firstElement = messageElements[0] as HTMLElement
+                const scrollPosition = targetElement.offsetTop - firstElement.offsetTop
+                chatContainerRef.current.scrollTop = scrollPosition
+              }
+            }
+          })
+        })
+      } else {
+        // Default to scrolling to bottom (e.g., during thinking or for initial message)
+        chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight
+      }
     }
   }, [chatHistory, isThinking])
 
