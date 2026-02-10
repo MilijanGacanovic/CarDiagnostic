@@ -114,9 +114,9 @@ export default function ChatPrompt() {
                 <div className="max-w-xs lg:max-w-md px-4 py-3 rounded-2xl bg-white text-gray-800 border border-gray-200">
                   <div className="flex items-center space-x-2">
                     <div className="flex space-x-1">
-                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
-                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
-                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce-1"></div>
+                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce-2"></div>
+                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce-3"></div>
                     </div>
                     <span className="text-sm text-gray-500">Thinking...</span>
                   </div>
